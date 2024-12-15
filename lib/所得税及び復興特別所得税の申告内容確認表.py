@@ -105,8 +105,6 @@ class 所得金額等:
         """
         total = 0
         total += self.事業_営業等.所得金額
-        # debug
-        total += 200_000
         return total
 
     def to_dataframe(self) -> pd.DataFrame:
