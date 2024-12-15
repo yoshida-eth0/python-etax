@@ -1,6 +1,3 @@
-
-
-
 import math
 from functools import wraps
 
@@ -564,6 +561,9 @@ class 住民税の税額:
             2. 東京都共同募金会 日本赤十字社東京都支部 (TODO)
             3. 東京都が条例で指定する団体 (TODO)
             4. 杉並区が条例で指定する団体 (TODO)
+        参考:
+            杉並区 令和6年度 わたしたちの区税 P15
+            https://www.city.suginami.tokyo.jp/_res/projects/default_project/_page_/001/014/046/r6kuzei.pdf.pdf
         TODO:
             寄付先ごとにモジュール化
         """
@@ -647,6 +647,9 @@ class 住民税の税額:
 
 
 class 住民税:
+    """
+    特別区民税・都民税・森林環境税 課税証明書
+    """
     def __init__(self, 所得税_所得控除: 所得税_所得控除, 所得控除データ: 所得控除の算出に用いるデータ, 税額控除データ: 税額控除の算出に用いるデータ, 住民税の税率一覧: list[住民税の税率] = [特別区民税, 都民税]):
         # (1) 所得金額の内訳
         self.所得金額等 = 所得税_所得控除.所得金額等
