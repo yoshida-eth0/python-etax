@@ -56,9 +56,9 @@ class 医療費:
         self.スイッチOTC医薬品の実質負担額: int = 0
 
 
-class 所得控除の算出に用いるデータ:
+class 控除データ:
     """
-    所得税や住民税の所得控除額を算出する際に用いる情報
+    所得税や住民税の控除額を算出する際に用いる情報
     """
     def __init__(self):
         # 社会保険料
@@ -126,6 +126,11 @@ class 所得控除の算出に用いるデータ:
 
         # ふるさと納税額(実質負担額2,000円を含む額)
         self.ふるさと納税額: int = 0
+        self.is_ワンストップ特例制度: bool = False
+
+        # 支払済の予定納税額
+        self.予定納税額_第1期分: int = 0
+        self.予定納税額_第2期分: int = 0
 
     @property
     def 障害者一覧(self) -> list[人物]:
@@ -140,3 +145,15 @@ class 所得控除の算出に用いるデータ:
         people = [person for person in people if person is not None]
         people = [person for person in people if person.障害!=障害.なし]
         return people
+
+    @property
+    def 控除対象配偶者又は扶養親族の人数(self) -> int:
+        """
+        控除対象配偶者又は扶養親族(非居住者を除く)の人数
+        住民税の定額減税の算出に使用
+        """
+        total = 0
+        if self.配偶者 is not None and not self.配偶者.is_一方の配偶者がこの控除を受けている:
+            total += 1
+        total += len(self.扶養親族一覧)
+        return total
