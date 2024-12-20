@@ -21,6 +21,12 @@ class 納税者本人(人物):
     """
     def __init__(self):
         super().__init__()
+
+        # 勤労学生
+        #
+        # 参考:
+        #   No.1175 勤労学生控除｜国税庁
+        #   https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1175.htm
         self.is_勤労学生 = False
 
 class 扶養親族(人物):
@@ -90,13 +96,6 @@ class 控除データ:
         #   No.1171 ひとり親控除｜国税庁
         #   https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1171.htm
         self.is_ひとり親: bool = False
-
-        # 勤労学生
-        #
-        # 参考:
-        #   No.1175 勤労学生控除｜国税庁
-        #   https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1175.htm
-        self.is_勤労学生: bool = False
 
         # 本人
         self.納税者本人 = 納税者本人()
