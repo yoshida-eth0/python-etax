@@ -2,8 +2,9 @@ import math
 
 import pandas as pd
 from utils import intfloor, ゼロ以上
-from 所得税青色申告決算書 import 損益計算書
-from 控除データ import 控除データ
+from 所得.事業所得 import 損益計算書
+from 所得.給与所得 import 給与所得者の特定支出に関する明細書
+from 納税者データ import 納税者データ
 
 
 class 所得金額等:
@@ -29,8 +30,9 @@ class 所得金額等:
     TODO:
         事業所得以外未実装
     """
-    def __init__(self, 事業_営業等: 損益計算書):
-        self.事業_営業等: 損益計算書 = 事業_営業等
+    def __init__(self, 事業_営業等: 損益計算書|None = None, 給与: 給与所得者の特定支出に関する明細書|None = None):
+        self.事業_営業等: 損益計算書 = 事業_営業等 or 損益計算書()
+        self.給与 = 給与 or 給与所得者の特定支出に関する明細書()
 
     @property
     def 収入金額等_事業_営業等(self) -> int:
@@ -40,11 +42,32 @@ class 所得金額等:
         return self.事業_営業等.売上_差引金額
 
     @property
+    def 収入金額等_給与(self) -> int:
+        """
+        オ. 収入金額等 -> 給与
+        """
+        return self.給与.給与等の収入金額の合計額
+
+    @property
+    def 収入金額等_給与_区分(self) -> int:
+        """
+        オ. 収入金額等 -> 給与 -> 区分
+        """
+        return self.給与.特定支出の金額.適用を受ける特定支出の区分の合計
+
+    @property
     def 所得金額等_事業_営業等(self) -> int:
         """
         1. 所得金額等 -> 事業 -> 営業等
         """
         return self.事業_営業等.所得金額
+
+    @property
+    def 所得金額等_給与(self) -> int:
+        """
+        6. 所得金額等 -> 給与
+        """
+        return self.給与.特定支出控除適用後の給与所得金額
 
     @property
     def 所得金額等_合計(self) -> int:
@@ -66,7 +89,8 @@ class 所得金額等:
             https://www.satsuma-net.jp/soshiki/yakuba/1005/3/zeikin/chokenminzei_juminzei/6766.html
         """
         total = 0
-        total += self.事業_営業等.所得金額
+        total += self.所得金額等_事業_営業等
+        total += self.所得金額等_給与
         return total
 
     @property
@@ -85,7 +109,8 @@ class 所得金額等:
             https://www.nta.go.jp/taxes/shiraberu/taxanswer/yogo/senmon.htm#word2
         """
         total = 0
-        total += self.事業_営業等.所得金額
+        total += self.所得金額等_事業_営業等
+        total += self.所得金額等_給与
         return total
 
     @property
@@ -101,7 +126,8 @@ class 所得金額等:
             https://www.nta.go.jp/taxes/shiraberu/taxanswer/yogo/senmon.htm#word1
         """
         total = 0
-        total += self.事業_営業等.所得金額
+        total += self.所得金額等_事業_営業等
+        total += self.所得金額等_給与
         return total
 
     def to_dataframe(self) -> pd.DataFrame:
@@ -113,7 +139,7 @@ class 所得金額等:
             ['イ', '収入金額等', '事業', '農業', 0],
             ['ウ', '収入金額等', '不動産', None, 0],
             ['エ', '収入金額等', '配当', None, 0],
-            ['オ', '収入金額等', '給与', None, 0],
+            ['オ', '収入金額等', '給与', None, self.収入金額等_給与],
             ['カ', '収入金額等', '雑', '公的年金等', 0],
             ['キ', '収入金額等', '雑', '業務', 0],
             ['ク', '収入金額等', '雑', 'その他', 0],
@@ -125,7 +151,7 @@ class 所得金額等:
             ['3', '所得金額等', '不動産', None, 0],
             ['4', '所得金額等', '利子', None, 0],
             ['5', '所得金額等', '配当', None, 0],
-            ['6', '所得金額等', '給与', None, 0],
+            ['6', '所得金額等', '給与', None, self.所得金額等_給与],
             ['7', '所得金額等', '雑', '公的年金等', 0],
             ['8', '所得金額等', '雑', '業務', 0],
             ['9', '所得金額等', '雑', 'その他', 0],
@@ -156,9 +182,9 @@ class 所得税_所得控除:
         医療費控除 (TODO)
         寄附金控除
     """
-    def __init__(self, 所得金額等: 所得金額等, data: 控除データ):
+    def __init__(self, 所得金額等: 所得金額等, 納税者データ: 納税者データ):
         self.所得金額等 = 所得金額等
-        self.data = data
+        self.data = 納税者データ
 
     @property
     def 社会保険料控除(self) -> int:
@@ -468,10 +494,10 @@ class 所得税_税額控除:
 
     TODO
     """
-    def __init__(self, 所得税_所得控除: 所得税_所得控除, data: 控除データ):
+    def __init__(self, 所得税_所得控除: 所得税_所得控除, 納税者データ: 納税者データ):
         self.所得金額等 = 所得税_所得控除.所得金額等
         self.所得税_所得控除 = 所得税_所得控除
-        self.data = data
+        self.納税者データ = 納税者データ
 
         # 42. 災害減免額
         self.災害減免額: int = 0
@@ -542,7 +568,7 @@ class 所得税_税額控除:
         """
         50. 予定納税額(第1期分・第2期分)
         """
-        return self.data.予定納税額_第1期分 + self.data.予定納税額_第2期分
+        return self.納税者データ.予定納税額_第1期分 + self.納税者データ.予定納税額_第2期分
 
     @property
     def 第3期分の税額(self) -> int:
@@ -586,16 +612,16 @@ class 所得税及び復興特別所得税の申告内容確認表_第一表:
     """
     所得税及び復興特別所得税の申告内容確認表 第一表
     """
-    def __init__(self, 所得金額等: 所得金額等, 控除データ: 控除データ):
+    def __init__(self, 所得金額等: 所得金額等, 納税者データ: 納税者データ):
         # ア~サ. 収入金額等
         # 1~12. 所得金額等
         self.所得金額等 = 所得金額等
 
         # 13~29. 所得から差し引かれる金額
-        self.所得税_所得控除 = 所得税_所得控除(所得金額等, 控除データ)
+        self.所得税_所得控除 = 所得税_所得控除(所得金額等, 納税者データ)
 
         # 32~52. 税金の計算
-        self.所得税_税額控除 = 所得税_税額控除(self.所得税_所得控除, 控除データ)
+        self.所得税_税額控除 = 所得税_税額控除(self.所得税_所得控除, 納税者データ)
 
     def to_dataframe(self) -> pd.DataFrame:
         """

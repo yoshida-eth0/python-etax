@@ -4,7 +4,7 @@ from functools import wraps
 import pandas as pd
 from utils import intfloor, ゼロ以上
 from 所得税及び復興特別所得税の申告内容確認表 import 所得税_所得控除, 所得税の税率, 所得税の速算表, 所得金額等
-from 控除データ import 控除データ
+from 納税者データ import 納税者データ
 
 
 class 住民税_所得控除:
@@ -28,9 +28,9 @@ class 住民税_所得控除:
         扶養控除 (TODO)
         基礎控除
     """
-    def __init__(self, 所得金額等: 所得金額等, data: 控除データ):
+    def __init__(self, 所得金額等: 所得金額等, 納税者データ: 納税者データ):
         self.所得金額等 = 所得金額等
-        self.data = data
+        self.納税者データ = 納税者データ
 
     @property
     def 雑損控除(self) -> int:
@@ -38,7 +38,7 @@ class 住民税_所得控除:
         雑損控除
         (2) 所得控除の内訳 -> 控除金額 -> 雑損控除
         """
-        if self.data.雑損.損失金額>0:
+        if self.納税者データ.雑損.損失金額>0:
             raise NotImplementedError('雑損控除')
         return 0
 
@@ -48,7 +48,7 @@ class 住民税_所得控除:
         医療費控除
         (2) 所得控除の内訳 -> 控除金額 -> 医療費控除
         """
-        if self.data.医療費.医療費の実質負担額>0 or self.data.医療費.スイッチOTC医薬品の実質負担額>0:
+        if self.納税者データ.医療費.医療費の実質負担額>0 or self.納税者データ.医療費.スイッチOTC医薬品の実質負担額>0:
             raise NotImplementedError('医療費控除')
         return 0
 
@@ -58,7 +58,7 @@ class 住民税_所得控除:
         社会保険料控除
         (2) 所得控除の内訳 -> 控除金額 -> 社会保険料控除
         """
-        return self.data.社会保険料
+        return self.納税者データ.社会保険料
 
     @property
     def 小規模企業共済等掛金控除(self) -> int:
@@ -66,7 +66,7 @@ class 住民税_所得控除:
         小規模企業共済等掛金控除
         (2) 所得控除の内訳 -> 控除金額 -> 小規模企業共済等掛金控除
         """
-        return self.data.小規模企業共済等掛金
+        return self.納税者データ.小規模企業共済等掛金
 
     @property
     def 生命保険料控除(self) -> int:
@@ -74,7 +74,7 @@ class 住民税_所得控除:
         生命保険料控除
         (2) 所得控除の内訳 -> 控除金額 -> 生命保険料控除
         """
-        if self.data.生命保険料>0:
+        if self.納税者データ.生命保険料>0:
             raise NotImplementedError('生命保険料控除')
         return 0
 
@@ -84,7 +84,7 @@ class 住民税_所得控除:
         地震保険料控除
         (2) 所得控除の内訳 -> 控除金額 -> 地震保険料控除
         """
-        if self.data.地震保険料>0:
+        if self.納税者データ.地震保険料>0:
             raise NotImplementedError('地震保険料控除')
         return 0
 
@@ -94,7 +94,7 @@ class 住民税_所得控除:
         障害者控除
         (2) 所得控除の内訳 -> 控除金額 -> 障害者控除
         """
-        if len(self.data.障害者一覧)>0:
+        if len(self.納税者データ.障害者一覧)>0:
             raise NotImplementedError('障害者控除')
         return 0
 
@@ -104,7 +104,7 @@ class 住民税_所得控除:
         寡婦控除
         (2) 所得控除の内訳 -> 控除金額 -> 寡婦控除
         """
-        if self.data.is_寡婦:
+        if self.納税者データ.is_寡婦:
             raise NotImplementedError('寡婦控除')
         return 0
 
@@ -114,7 +114,7 @@ class 住民税_所得控除:
         ひとり親控除
         (2) 所得控除の内訳 -> 控除金額 -> ひとり親控除
         """
-        if self.data.is_ひとり親:
+        if self.納税者データ.is_ひとり親:
             raise NotImplementedError('ひとり親控除')
         return 0
 
@@ -124,7 +124,7 @@ class 住民税_所得控除:
         勤労学生控除
         (2) 所得控除の内訳 -> 控除金額 -> 勤労学生控除
         """
-        if self.data.納税者本人.is_勤労学生:
+        if self.納税者データ.納税者本人.is_勤労学生:
             raise NotImplementedError('勤労学生控除')
         return 0
 
@@ -134,7 +134,7 @@ class 住民税_所得控除:
         配偶者控除
         (2) 所得控除の内訳 -> 控除金額 -> 配偶者控除
         """
-        if self.data.配偶者 is not None:
+        if self.納税者データ.配偶者 is not None:
             raise NotImplementedError('配偶者控除')
         return 0
 
@@ -144,7 +144,7 @@ class 住民税_所得控除:
         配偶者特別控除
         (2) 所得控除の内訳 -> 控除金額 -> 配偶者特別控除
         """
-        if self.data.配偶者 is not None:
+        if self.納税者データ.配偶者 is not None:
             raise NotImplementedError('配偶者特別控除')
         return 0
 
@@ -154,7 +154,7 @@ class 住民税_所得控除:
         扶養控除
         (2) 所得控除の内訳 -> 控除金額 -> 扶養控除
         """
-        if len(self.data.扶養親族一覧)>0:
+        if len(self.納税者データ.扶養親族一覧)>0:
             raise NotImplementedError('扶養控除')
         return 0
 
@@ -336,7 +336,7 @@ class 住民税の税額:
     住民税の区分ごとの税額
     (4) 合計税額 -> 税額
     """
-    def __init__(self, 課税標準額: 課税標準額, 所得税_所得控除: 所得税_所得控除, 住民税_所得控除: 住民税_所得控除, 住民税の税率: 住民税の税率, 合計所得割: float, 控除データ: 控除データ):
+    def __init__(self, 課税標準額: 課税標準額, 所得税_所得控除: 所得税_所得控除, 住民税_所得控除: 住民税_所得控除, 住民税の税率: 住民税の税率, 合計所得割: float, 納税者データ: 納税者データ):
         # 課税標準額
         self.課税標準額 = 課税標準額
 
@@ -352,7 +352,7 @@ class 住民税の税額:
         self.所得割区分割合 = round(住民税の税率.所得割 / 合計所得割, 3)
 
         # 住民税の税額控除
-        self.data = 控除データ
+        self.data = 納税者データ
 
     @property
     def 所得割合計額(self) -> int:
@@ -650,19 +650,19 @@ class 住民税:
     """
     特別区民税・都民税・森林環境税 課税証明書
     """
-    def __init__(self, 所得税_所得控除: 所得税_所得控除, 控除データ: 控除データ, 住民税の税率一覧: list[住民税の税率] = [特別区民税, 都民税]):
+    def __init__(self, 所得税_所得控除: 所得税_所得控除, 納税者データ: 納税者データ, 住民税の税率一覧: list[住民税の税率] = [特別区民税, 都民税]):
         # (1) 所得金額の内訳
         self.所得金額等 = 所得税_所得控除.所得金額等
 
         # (2) 所得控除の内訳
-        self.住民税_所得控除 = 住民税_所得控除(self.所得金額等, 控除データ)
+        self.住民税_所得控除 = 住民税_所得控除(self.所得金額等, 納税者データ)
 
         # (3) 課税標準額
         self.課税標準額 = 課税標準額(self.住民税_所得控除)
 
         # (4) 合計税額 -> 税額
         合計所得割 = sum([住民税の税率.所得割 for 住民税の税率 in 住民税の税率一覧])
-        self.住民税の税額一覧 = [住民税の税額(self.課税標準額, 所得税_所得控除, self.住民税_所得控除, 住民税の税率, 合計所得割, 控除データ) for 住民税の税率 in 住民税の税率一覧]
+        self.住民税の税額一覧 = [住民税の税額(self.課税標準額, 所得税_所得控除, self.住民税_所得控除, 住民税の税率, 合計所得割, 納税者データ) for 住民税の税率 in 住民税の税率一覧]
 
     @property
     def 森林環境税額(self) -> int:

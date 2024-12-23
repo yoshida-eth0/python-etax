@@ -1,4 +1,7 @@
-# 所得税青色申告決算書
+"""
+事業所得
+所得税青色申告決算書
+"""
 
 import pandas as pd
 from utils import ゼロ以上
