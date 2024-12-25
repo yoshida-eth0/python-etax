@@ -2,9 +2,11 @@ import math
 from functools import wraps
 
 import pandas as pd
+from context import get_context
+from meta.住民税 import 住民税の税率
 from utils import intfloor, ゼロ以上
-from 所得税及び復興特別所得税の申告内容確認表 import 所得税_所得控除, 所得税の税率, 所得税の速算表, 所得金額等
-from 納税者データ import 納税者データ
+from 所得税及び復興特別所得税の申告内容確認表 import 所得税_所得控除, 所得税の税率, 所得金額等
+from 納税者 import 納税者
 
 
 class 住民税_所得控除:
@@ -28,9 +30,9 @@ class 住民税_所得控除:
         扶養控除 (TODO)
         基礎控除
     """
-    def __init__(self, 所得金額等: 所得金額等, 納税者データ: 納税者データ):
+    def __init__(self, 所得金額等: 所得金額等, 納税者: 納税者):
         self.所得金額等 = 所得金額等
-        self.納税者データ = 納税者データ
+        self.納税者 = 納税者
 
     @property
     def 雑損控除(self) -> int:
@@ -38,7 +40,7 @@ class 住民税_所得控除:
         雑損控除
         (2) 所得控除の内訳 -> 控除金額 -> 雑損控除
         """
-        if self.納税者データ.雑損.損失金額>0:
+        if self.納税者.雑損.損失金額>0:
             raise NotImplementedError('雑損控除')
         return 0
 
@@ -48,7 +50,7 @@ class 住民税_所得控除:
         医療費控除
         (2) 所得控除の内訳 -> 控除金額 -> 医療費控除
         """
-        if self.納税者データ.医療費.医療費の実質負担額>0 or self.納税者データ.医療費.スイッチOTC医薬品の実質負担額>0:
+        if self.納税者.医療費.医療費の実質負担額>0 or self.納税者.医療費.スイッチOTC医薬品の実質負担額>0:
             raise NotImplementedError('医療費控除')
         return 0
 
@@ -58,7 +60,7 @@ class 住民税_所得控除:
         社会保険料控除
         (2) 所得控除の内訳 -> 控除金額 -> 社会保険料控除
         """
-        return self.納税者データ.社会保険料
+        return self.納税者.社会保険料
 
     @property
     def 小規模企業共済等掛金控除(self) -> int:
@@ -66,7 +68,7 @@ class 住民税_所得控除:
         小規模企業共済等掛金控除
         (2) 所得控除の内訳 -> 控除金額 -> 小規模企業共済等掛金控除
         """
-        return self.納税者データ.小規模企業共済等掛金
+        return self.納税者.小規模企業共済等掛金
 
     @property
     def 生命保険料控除(self) -> int:
@@ -74,7 +76,7 @@ class 住民税_所得控除:
         生命保険料控除
         (2) 所得控除の内訳 -> 控除金額 -> 生命保険料控除
         """
-        if self.納税者データ.生命保険料>0:
+        if self.納税者.生命保険料>0:
             raise NotImplementedError('生命保険料控除')
         return 0
 
@@ -84,7 +86,7 @@ class 住民税_所得控除:
         地震保険料控除
         (2) 所得控除の内訳 -> 控除金額 -> 地震保険料控除
         """
-        if self.納税者データ.地震保険料>0:
+        if self.納税者.地震保険料>0:
             raise NotImplementedError('地震保険料控除')
         return 0
 
@@ -94,7 +96,7 @@ class 住民税_所得控除:
         障害者控除
         (2) 所得控除の内訳 -> 控除金額 -> 障害者控除
         """
-        if len(self.納税者データ.障害者一覧)>0:
+        if len(self.納税者.障害者一覧)>0:
             raise NotImplementedError('障害者控除')
         return 0
 
@@ -104,7 +106,7 @@ class 住民税_所得控除:
         寡婦控除
         (2) 所得控除の内訳 -> 控除金額 -> 寡婦控除
         """
-        if self.納税者データ.is_寡婦:
+        if self.納税者.is_寡婦:
             raise NotImplementedError('寡婦控除')
         return 0
 
@@ -114,7 +116,7 @@ class 住民税_所得控除:
         ひとり親控除
         (2) 所得控除の内訳 -> 控除金額 -> ひとり親控除
         """
-        if self.納税者データ.is_ひとり親:
+        if self.納税者.is_ひとり親:
             raise NotImplementedError('ひとり親控除')
         return 0
 
@@ -124,7 +126,7 @@ class 住民税_所得控除:
         勤労学生控除
         (2) 所得控除の内訳 -> 控除金額 -> 勤労学生控除
         """
-        if self.納税者データ.納税者本人.is_勤労学生:
+        if self.納税者.納税者本人.is_勤労学生:
             raise NotImplementedError('勤労学生控除')
         return 0
 
@@ -134,7 +136,7 @@ class 住民税_所得控除:
         配偶者控除
         (2) 所得控除の内訳 -> 控除金額 -> 配偶者控除
         """
-        if self.納税者データ.配偶者 is not None:
+        if self.納税者.配偶者 is not None:
             raise NotImplementedError('配偶者控除')
         return 0
 
@@ -144,7 +146,7 @@ class 住民税_所得控除:
         配偶者特別控除
         (2) 所得控除の内訳 -> 控除金額 -> 配偶者特別控除
         """
-        if self.納税者データ.配偶者 is not None:
+        if self.納税者.配偶者 is not None:
             raise NotImplementedError('配偶者特別控除')
         return 0
 
@@ -154,7 +156,7 @@ class 住民税_所得控除:
         扶養控除
         (2) 所得控除の内訳 -> 控除金額 -> 扶養控除
         """
-        if len(self.納税者データ.扶養親族一覧)>0:
+        if len(self.納税者.扶養親族一覧)>0:
             raise NotImplementedError('扶養控除')
         return 0
 
@@ -164,23 +166,11 @@ class 住民税_所得控除:
         基礎控除
         (2) 所得控除の内訳 -> 控除金額 -> 基礎控除
         """
-        # 合計所得金額
-        shotoku = self.所得金額等.合計所得金額
+        impl = get_context().住民税_基礎控除
+        if impl is None:
+            raise NotImplementedError(f'Context.住民税_基礎控除')
 
-        # 2,400万円以下
-        if shotoku<=24_000_000:
-            return 430_000
-
-        # 2,400万円超2,450万円以下
-        if shotoku<=24_500_000:
-            return 290_000
-
-        # 2,450万円超2,500万円以下
-        if shotoku<=25_000_000:
-            return 150_000
-
-        # 2,500万円超
-        return 0
+        return impl.住民税_基礎控除(self.所得金額等.合計所得金額)
 
     @property
     def 控除合計(self) -> int:
@@ -304,24 +294,6 @@ class 課税標準額:
         ], columns=['label1', 'label2', 'value'])
 
 
-class 住民税の税率:
-    """
-    住民税の税率区分
-    """
-    def __init__(self, 区分: str, 所得割: float, 均等割: int, 定額減税: int):
-        self.区分 = 区分
-        self.所得割 = 所得割
-        self.均等割 = 均等割
-        self.定額減税 = 定額減税
-
-特別区民税 = 住民税の税率('特別区民税', 0.06, 3_000, 0)
-都民税 = 住民税の税率('都民税', 0.04, 1_000, 0)
-
-# 令和6年度分のみ定額減税あり
-特別区民税_R6 = 住民税の税率('特別区民税', 0.06, 3_000, 6_000)
-都民税_R6 = 住民税の税率('都民税', 0.04, 1_000, 4_000)
-
-
 def 所得割区分割合適用(func) -> int:
     """
     所得割区分割合を適用するデコレータ
@@ -336,7 +308,7 @@ class 住民税の税額:
     住民税の区分ごとの税額
     (4) 合計税額 -> 税額
     """
-    def __init__(self, 課税標準額: 課税標準額, 所得税_所得控除: 所得税_所得控除, 住民税_所得控除: 住民税_所得控除, 住民税の税率: 住民税の税率, 合計所得割: float, 納税者データ: 納税者データ):
+    def __init__(self, 課税標準額: 課税標準額, 所得税_所得控除: 所得税_所得控除, 住民税_所得控除: 住民税_所得控除, 住民税の税率: 住民税の税率, 合計所得割: float, 納税者: 納税者):
         # 課税標準額
         self.課税標準額 = 課税標準額
 
@@ -352,7 +324,7 @@ class 住民税の税額:
         self.所得割区分割合 = round(住民税の税率.所得割 / 合計所得割, 3)
 
         # 住民税の税額控除
-        self.data = 納税者データ
+        self.納税者 = 納税者
 
     @property
     def 所得割合計額(self) -> int:
@@ -453,7 +425,11 @@ class 住民税の税額:
             杉並区 令和6年度 わたしたちの区税 P15
             https://www.city.suginami.tokyo.jp/_res/projects/default_project/_page_/001/014/046/r6kuzei.pdf.pdf
         """
-        return 所得税の速算表.get(self.課税標準額.課税総所得金額 - self.人的控除差調整額)
+        impl = get_context().所得税_税率
+        if impl is None:
+            raise NotImplementedError(f'Context.所得税_税率')
+
+        return impl.所得税の税率(self.課税標準額.課税総所得金額 - self.人的控除差調整額)
 
     @property
     def 寄附金税額控除_ふるさと納税_基本控除額(self) -> int:
@@ -470,7 +446,7 @@ class 住民税の税額:
         # (2) 住民税からの控除（基本分） = （ふるさと納税額－2,000円）×10％
         # なお、控除の対象となるふるさと納税額は、総所得金額等の30％が上限です。
         shotoku30per = math.ceil(self.課税標準額.課税総所得金額 * 0.30)
-        hurusato = min(self.data.ふるさと納税額, shotoku30per)
+        hurusato = min(self.納税者.ふるさと納税額, shotoku30per)
 
         var1 = math.ceil((hurusato - 2_000) * self.住民税の税率.所得割)
         var1 = max(var1, 0)
@@ -502,7 +478,7 @@ class 住民税の税額:
         # 特例控除額＝（寄附金合計額－2,000円）×（90％－所得税の限界税率×1.021）（区民税3/5・都民税2/5）
         # 特例控除額は、所得割額（調整控除額控除後の額）の 20% を限度とします。
         zeiritsu = self.所得税の限界税率
-        var3 = math.ceil((self.data.ふるさと納税額 - 2_000) * (1.0 - self.合計所得割 - zeiritsu.税率 * (1.0 + zeiritsu.復興特別所得税率)) * self.所得割区分割合)
+        var3 = math.ceil((self.納税者.ふるさと納税額 - 2_000) * (1.0 - self.合計所得割 - zeiritsu.税率 * (1.0 + zeiritsu.復興特別所得税率)) * self.所得割区分割合)
         var3 = max(var3, 0)
 
         # (3)' 住民税からの控除（特例分） = （住民税所得割額）×20％
@@ -533,7 +509,7 @@ class 住民税の税額:
         """
         # TODO
         # 申告特例控除額＝特例控除額×（所得税の限界税率×1.021）（区民税3/5・都民税2/5）
-        if self.data.is_ワンストップ特例制度:
+        if self.納税者.is_ワンストップ特例制度:
             raise NotImplementedError('is_ワンストップ特例制度')
         return 0
 
@@ -575,8 +551,12 @@ class 住民税の税額:
         定額減税(令和6年度分のみ)
         (4) 合計税額 -> 税額 -> 定額減税
         """
-        if self.課税標準額.所得金額等.合計所得金額<=18_050_000:
-            return self.住民税の税率.定額減税 * (1 + self.data.控除対象配偶者又は扶養親族の人数)
+        impl = get_context().住民税_税率一覧
+        if impl is None:
+            raise NotImplementedError(f'Context.住民税_税率一覧')
+
+        if impl.住民税_定額減税対象可否(self.課税標準額.所得金額等.合計所得金額):
+            return self.住民税の税率.定額減税 * (1 + self.納税者.控除対象配偶者又は扶養親族の人数)
         return 0
 
     @property
@@ -650,19 +630,24 @@ class 住民税:
     """
     特別区民税・都民税・森林環境税 課税証明書
     """
-    def __init__(self, 所得税_所得控除: 所得税_所得控除, 納税者データ: 納税者データ, 住民税の税率一覧: list[住民税の税率] = [特別区民税, 都民税]):
+    def __init__(self, 所得税_所得控除: 所得税_所得控除, 納税者: 納税者):
         # (1) 所得金額の内訳
         self.所得金額等 = 所得税_所得控除.所得金額等
 
         # (2) 所得控除の内訳
-        self.住民税_所得控除 = 住民税_所得控除(self.所得金額等, 納税者データ)
+        self.住民税_所得控除 = 住民税_所得控除(self.所得金額等, 納税者)
 
         # (3) 課税標準額
         self.課税標準額 = 課税標準額(self.住民税_所得控除)
 
         # (4) 合計税額 -> 税額
+        impl = get_context().住民税_税率一覧
+        if impl is None:
+            raise NotImplementedError(f'Context.住民税_税率一覧')
+
+        住民税の税率一覧 = impl.住民税の税率一覧()
         合計所得割 = sum([住民税の税率.所得割 for 住民税の税率 in 住民税の税率一覧])
-        self.住民税の税額一覧 = [住民税の税額(self.課税標準額, 所得税_所得控除, self.住民税_所得控除, 住民税の税率, 合計所得割, 納税者データ) for 住民税の税率 in 住民税の税率一覧]
+        self.住民税の税額一覧 = [住民税の税額(self.課税標準額, 所得税_所得控除, self.住民税_所得控除, 住民税の税率, 合計所得割, 納税者) for 住民税の税率 in 住民税の税率一覧]
 
     @property
     def 森林環境税額(self) -> int:

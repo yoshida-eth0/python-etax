@@ -3,53 +3,15 @@
 """
 
 import sys
-from typing import Protocol
 
 import pandas as pd
+from context import get_context
+from meta.給与所得控除 import 給与所得控除後の金額Protocol
 from utils import intfloor, ゼロ以上
 
 """
-給与所得控除
+給与
 """
-
-class 給与所得控除後の金額Protocol(Protocol):
-    def __call__(self, 給与等の収入金額: int) -> int:
-        """
-        給与等の収入金額から給与所得控除後の金額を算出する
-        """
-        pass
-
-class 給与所得控除の定義:
-    items: dict[range,給与所得控除後の金額Protocol] = {
-        # ～550,999円
-        range(-sys.maxsize,     551_000): lambda a: 0,
-        # 551,000円～1,618,999円
-        range(     551_000,   1_619_000): lambda a: a - 550_000,
-        # 1,619,000円～1,619,999円
-        range(   1_619_000,   1_620_000): lambda a: 1_069_000,
-        # 1,620,000円～1,621,999円
-        range(   1_620_000,   1_622_000): lambda a: 1_070_000,
-        # 1,622,000円～1,623,999円
-        range(   1_622_000,   1_624_000): lambda a: 1_072_000,
-        # 1,624,000円～1,627,999円
-        range(   1_624_000,   1_628_000): lambda a: 1_074_000,
-        # 1,628,000円～1,799,999円
-        range(   1_628_000,   1_800_000): lambda a: round(intfloor(a/4, 3) * 2.4 + 100_000),
-        # 1,800,000円～3,599,999円
-        range(   1_800_000,   3_600_000): lambda a: round(intfloor(a/4, 3) * 2.8 - 80_000),
-        # 3,600,000円～6,599,999円
-        range(   3_600_000,   6_600_000): lambda a: round(intfloor(a/4, 3) * 3.2 - 440_000),
-        # 6,600,000円～8,499,999円
-        range(   6_600_000,   8_500_000): lambda a: round(a * 0.9 - 1_100_000),
-        # 8,500,000円～
-        range(   8_500_000, sys.maxsize): lambda a: a - 1_950_000,
-    }
-
-    @classmethod
-    def get(cls, 給与等の収入金額: int) -> 給与所得控除後の金額Protocol:
-        for r, f in cls.items.items():
-            if 給与等の収入金額 in r:
-                return f
 
 class 給与:
     def __init__(self, 給与等の収入金額: int = 0):
@@ -57,7 +19,11 @@ class 給与:
 
     @property
     def 給与所得控除後の金額(self) -> int:
-        func =  給与所得控除の定義.get(self.給与等の収入金額)
+        impl = get_context().給与所得控除
+        if impl is None:
+            raise NotImplementedError(f'Context.給与所得控除')
+
+        func = impl.給与所得控除後の金額の式(self.給与等の収入金額)
         return func(self.給与等の収入金額)
 
     @property

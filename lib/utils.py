@@ -1,5 +1,8 @@
 import math
 from functools import wraps
+from typing import TypeVar
+
+T = TypeVar('T')
 
 
 def intfloor(value: int|float, n: int) -> int:
@@ -19,3 +22,19 @@ def ゼロ以上(func) -> int:
         retval = func(*args, **kwargs)
         return max(retval, 0)
     return wrapper
+
+
+def get_range_dict_value(dic: dict[range,T], key: int) -> T:
+    """
+    rangeをキーに持つ辞書からrangeに含まれるkeyの要素を返す
+
+    args:
+        dic (dict[range,T]): 検索対象の辞書
+        key (int): 検索値
+    return:
+        obj (T): 一致する要素
+    """
+    for key_range, obj in dic.items():
+        if key in key_range:
+            return obj
+    raise ValueError(f'no match key value in range key: {key}')

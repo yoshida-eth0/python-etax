@@ -1,10 +1,12 @@
 import math
 
 import pandas as pd
+from context import get_context
+from meta.所得税 import 所得税の税率
 from utils import intfloor, ゼロ以上
 from 所得.事業所得 import 損益計算書
 from 所得.給与所得 import 給与所得者の特定支出に関する明細書
-from 納税者データ import 納税者データ
+from 納税者 import 納税者
 
 
 class 所得金額等:
@@ -182,30 +184,30 @@ class 所得税_所得控除:
         医療費控除 (TODO)
         寄附金控除
     """
-    def __init__(self, 所得金額等: 所得金額等, 納税者データ: 納税者データ):
+    def __init__(self, 所得金額等: 所得金額等, 納税者: 納税者):
         self.所得金額等 = 所得金額等
-        self.data = 納税者データ
+        self.納税者 = 納税者
 
     @property
     def 社会保険料控除(self) -> int:
         """
         13. 社会保険料控除
         """
-        return self.data.社会保険料
+        return self.納税者.社会保険料
 
     @property
     def 小規模企業共済等掛金控除(self) -> int:
         """
         14. 小規模企業共済等掛金控除
         """
-        return self.data.小規模企業共済等掛金
+        return self.納税者.小規模企業共済等掛金
 
     @property
     def 生命保険料控除(self) -> int:
         """
         15. 生命保険料控除
         """
-        if self.data.生命保険料>0:
+        if self.納税者.生命保険料>0:
             raise NotImplementedError('生命保険料控除')
         return 0
 
@@ -214,7 +216,7 @@ class 所得税_所得控除:
         """
         16. 地震保険料控除
         """
-        if self.data.地震保険料>0:
+        if self.納税者.地震保険料>0:
             raise NotImplementedError('地震保険料控除')
         return 0
 
@@ -223,7 +225,7 @@ class 所得税_所得控除:
         """
         17~18. 寡婦控除
         """
-        if self.data.is_寡婦:
+        if self.納税者.is_寡婦:
             raise NotImplementedError('寡婦控除')
         return 0
 
@@ -232,7 +234,7 @@ class 所得税_所得控除:
         """
         17~18. ひとり親控除
         """
-        if self.data.is_ひとり親:
+        if self.納税者.is_ひとり親:
             raise NotImplementedError('ひとり親控除')
         return 0
 
@@ -241,7 +243,7 @@ class 所得税_所得控除:
         """
         19~20. 勤労学生控除
         """
-        if self.data.納税者本人.is_勤労学生:
+        if self.納税者.納税者本人.is_勤労学生:
             raise NotImplementedError('勤労学生控除')
         return 0
 
@@ -250,7 +252,7 @@ class 所得税_所得控除:
         """
         19~20. 障害者控除
         """
-        if len(self.data.障害者一覧)>0:
+        if len(self.納税者.障害者一覧)>0:
             raise NotImplementedError('障害者控除')
         return 0
 
@@ -259,7 +261,7 @@ class 所得税_所得控除:
         """
         21~22. 配偶者控除
         """
-        if self.data.配偶者 is not None:
+        if self.納税者.配偶者 is not None:
             raise NotImplementedError('配偶者控除')
         return 0
 
@@ -268,7 +270,7 @@ class 所得税_所得控除:
         """
         21~22. 配偶者特別控除
         """
-        if self.data.配偶者 is not None:
+        if self.納税者.配偶者 is not None:
             raise NotImplementedError('配偶者特別控除')
         return 0
 
@@ -277,7 +279,7 @@ class 所得税_所得控除:
         """
         23. 扶養控除
         """
-        if len(self.data.扶養親族一覧)>0:
+        if len(self.納税者.扶養親族一覧)>0:
             raise NotImplementedError('扶養控除')
         return 0
 
@@ -286,23 +288,11 @@ class 所得税_所得控除:
         """
         24. 基礎控除
         """
-        # 合計所得金額
-        shotoku = self.所得金額等.所得金額等_合計
+        impl = get_context().所得税_基礎控除
+        if impl is None:
+            raise NotImplementedError(f'Context.所得税_基礎控除')
 
-        # 2,400万円以下
-        if shotoku<=24_000_000:
-            return 480_000
-
-        # 2,400万円超2,450万円以下
-        if shotoku<=24_500_000:
-            return 320_000
-
-        # 2,450万円超2,500万円以下
-        if shotoku<=25_000_000:
-            return 160_000
-
-        # 2,500万円超
-        return 0
+        return impl.所得税_基礎控除(self.所得金額等.所得金額等_合計)
 
     @property
     def _13から24までの計(self) -> int:
@@ -329,7 +319,7 @@ class 所得税_所得控除:
         """
         26. 雑損控除
         """
-        if self.data.雑損.損失金額>0:
+        if self.納税者.雑損.損失金額>0:
             raise NotImplementedError('雑損控除')
         return 0
 
@@ -338,7 +328,7 @@ class 所得税_所得控除:
         """
         27. 医療費控除
         """
-        if self.data.医療費.医療費の実質負担額>0 or self.data.医療費.スイッチOTC医薬品の実質負担額>0:
+        if self.納税者.医療費.医療費の実質負担額>0 or self.納税者.医療費.スイッチOTC医薬品の実質負担額>0:
             raise NotImplementedError('医療費控除')
         return 0
 
@@ -348,7 +338,7 @@ class 所得税_所得控除:
         特定寄附金の額の合計額
         """
         total = 0
-        total += self.data.ふるさと納税額
+        total += self.納税者.ふるさと納税額
         return total
 
     @property
@@ -429,59 +419,6 @@ class 所得税_所得控除:
         ], columns=['key', 'label', 'value'])
 
 
-class 所得税の税率:
-    """
-    所得税の税率
-
-    No.2260 所得税の税率｜国税庁
-    https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2260.htm
-    """
-    def __init__(self, 課税される所得金額min: int, 課税される所得金額max: int, 税率: float, 控除額: int):
-        self.課税される所得金額min = 課税される所得金額min
-        self.課税される所得金額max = 課税される所得金額max
-        self.税率 = 税率
-        self.控除額 = 控除額
-
-    @property
-    def 復興特別所得税率(self) -> float:
-        if self.税率>0.0:
-            return 0.021
-        return 0.0
-
-class 所得税の速算表:
-    """
-    所得税の速算表
-    """
-    items = [
-        # 0円
-        所得税の税率(-float('inf'),            0, 0.00,         0),
-        # 1,000円 から 1,949,000円まで
-        所得税の税率(        1_000,    1_949_000, 0.05,         0),
-        # 1,950,000円 から 3,299,000円まで
-        所得税の税率(    1_950_000,    3_299_000, 0.10,    97_500),
-        # 3,300,000円 から 6,949,000円まで
-        所得税の税率(    3_300_000,    6_949_000, 0.20,   427_500),
-        # 6,950,000円 から 8,999,000円まで
-        所得税の税率(    6_950_000,    8_999_000, 0.23,   636_000),
-        # 9,000,000円 から 17,999,000円まで
-        所得税の税率(    9_000_000,   17_999_000, 0.33, 1_536_000),
-        # 18,000,000円 から 39,999,000円まで
-        所得税の税率(   18_000_000,   39_999_000, 0.40, 2_796_000),
-        # 40,000,000円 以上
-        所得税の税率(   40_000_000, float('inf'), 0.405, 4_796_000),
-    ]
-
-    @classmethod
-    def get(cls, 課税される所得金額: int) -> 所得税の税率:
-        """
-        課税される所得金額に対応したオブジェクトを返す
-        """
-        課税される所得金額 = intfloor(課税される所得金額, 3)
-        for x in cls.items:
-            if x.課税される所得金額min<=課税される所得金額 and 課税される所得金額<=x.課税される所得金額max:
-                return x
-
-
 class 所得税_税額控除:
     """
     所得税の税額控除
@@ -494,10 +431,10 @@ class 所得税_税額控除:
 
     TODO
     """
-    def __init__(self, 所得税_所得控除: 所得税_所得控除, 納税者データ: 納税者データ):
+    def __init__(self, 所得税_所得控除: 所得税_所得控除, 納税者: 納税者):
         self.所得金額等 = 所得税_所得控除.所得金額等
         self.所得税_所得控除 = 所得税_所得控除
-        self.納税者データ = 納税者データ
+        self.納税者 = 納税者
 
         # 42. 災害減免額
         self.災害減免額: int = 0
@@ -515,7 +452,11 @@ class 所得税_税額控除:
         """
         課税される所得金額に対応した所得税の計算式
         """
-        return 所得税の速算表.get(self.課税される所得金額又は第三表)
+        impl = get_context().所得税_税率
+        if impl is None:
+            raise NotImplementedError(f'Context.所得税_税率')
+
+        return impl.所得税の税率(self.課税される所得金額又は第三表)
 
     @property
     def 上の30に対する税額又は第三表の93(self) -> int:
@@ -568,7 +509,7 @@ class 所得税_税額控除:
         """
         50. 予定納税額(第1期分・第2期分)
         """
-        return self.納税者データ.予定納税額_第1期分 + self.納税者データ.予定納税額_第2期分
+        return self.納税者.予定納税額_第1期分 + self.納税者.予定納税額_第2期分
 
     @property
     def 第3期分の税額(self) -> int:
@@ -612,16 +553,16 @@ class 所得税及び復興特別所得税の申告内容確認表_第一表:
     """
     所得税及び復興特別所得税の申告内容確認表 第一表
     """
-    def __init__(self, 所得金額等: 所得金額等, 納税者データ: 納税者データ):
+    def __init__(self, 所得金額等: 所得金額等, 納税者: 納税者):
         # ア~サ. 収入金額等
         # 1~12. 所得金額等
         self.所得金額等 = 所得金額等
 
         # 13~29. 所得から差し引かれる金額
-        self.所得税_所得控除 = 所得税_所得控除(所得金額等, 納税者データ)
+        self.所得税_所得控除 = 所得税_所得控除(所得金額等, 納税者)
 
         # 32~52. 税金の計算
-        self.所得税_税額控除 = 所得税_税額控除(self.所得税_所得控除, 納税者データ)
+        self.所得税_税額控除 = 所得税_税額控除(self.所得税_所得控除, 納税者)
 
     def to_dataframe(self) -> pd.DataFrame:
         """
