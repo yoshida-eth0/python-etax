@@ -35,6 +35,6 @@ def get_range_dict_value(dic: dict[range,T], key: int) -> T:
         obj (T): 一致する要素
     """
     for key_range, obj in dic.items():
-        if key in key_range:
+        if int(key) in key_range:
             return obj
     raise ValueError(f'no match key value in range key: {key}')

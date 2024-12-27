@@ -168,7 +168,7 @@ class 住民税_所得控除:
         """
         impl = get_context().住民税_基礎控除
         if impl is None:
-            raise NotImplementedError(f'Context.住民税_基礎控除')
+            raise NotImplementedError('Context.住民税_基礎控除')
 
         return impl.住民税_基礎控除(self.所得金額等.合計所得金額)
 
@@ -427,7 +427,7 @@ class 住民税の税額:
         """
         impl = get_context().所得税_税率
         if impl is None:
-            raise NotImplementedError(f'Context.所得税_税率')
+            raise NotImplementedError('Context.所得税_税率')
 
         return impl.所得税の税率(self.課税標準額.課税総所得金額 - self.人的控除差調整額)
 
@@ -553,7 +553,7 @@ class 住民税の税額:
         """
         impl = get_context().住民税_税率一覧
         if impl is None:
-            raise NotImplementedError(f'Context.住民税_税率一覧')
+            raise NotImplementedError('Context.住民税_税率一覧')
 
         if impl.住民税_定額減税対象可否(self.課税標準額.所得金額等.合計所得金額):
             return self.住民税の税率.定額減税 * (1 + self.納税者.控除対象配偶者又は扶養親族の人数)
@@ -643,7 +643,7 @@ class 住民税:
         # (4) 合計税額 -> 税額
         impl = get_context().住民税_税率一覧
         if impl is None:
-            raise NotImplementedError(f'Context.住民税_税率一覧')
+            raise NotImplementedError('Context.住民税_税率一覧')
 
         住民税の税率一覧 = impl.住民税の税率一覧()
         合計所得割 = sum([住民税の税率.所得割 for 住民税の税率 in 住民税の税率一覧])

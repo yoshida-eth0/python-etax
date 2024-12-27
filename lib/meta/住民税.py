@@ -20,11 +20,10 @@ class 住民税の税率:
     """
     住民税の税率区分
     """
-    def __init__(self, 区分: str, 所得割: float, 均等割: int, 復興特別所得税率: float = 0.0, 定額減税: int = 0):
+    def __init__(self, 区分: str, 所得割: float, 均等割: int, 定額減税: int = 0):
         self.区分 = 区分
         self.所得割 = 所得割
         self.均等割 = 均等割
-        self.復興特別所得税率 = 復興特別所得税率
         self.定額減税 = 定額減税
 
 class I住民税_税率一覧(metaclass=ABCMeta):

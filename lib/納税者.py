@@ -1,5 +1,7 @@
 from enum import Enum
 
+from meta.社会保険 import 都道府県名
+
 
 class 障害(Enum):
     """
@@ -13,6 +15,7 @@ class 障害(Enum):
 
 class 人物:
     def __init__(self):
+        self.年齢: int = None
         self.障害 = 障害.なし
 
 class 納税者本人(人物):
@@ -35,7 +38,6 @@ class 扶養親族(人物):
     """
     def __init__(self):
         super().__init__()
-        self.年齢: int = None
         self.合計所得: int = 0
         self.is_給与所得のみ: bool = True
         self.is_事業専従者: bool = False
@@ -130,6 +132,9 @@ class 納税者:
         # 支払済の予定納税額
         self.予定納税額_第1期分: int = 0
         self.予定納税額_第2期分: int = 0
+
+        # 都道府県
+        self.都道府県: 都道府県名
 
     @property
     def 障害者一覧(self) -> list[人物]:

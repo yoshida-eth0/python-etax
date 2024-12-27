@@ -290,7 +290,7 @@ class 所得税_所得控除:
         """
         impl = get_context().所得税_基礎控除
         if impl is None:
-            raise NotImplementedError(f'Context.所得税_基礎控除')
+            raise NotImplementedError('Context.所得税_基礎控除')
 
         return impl.所得税_基礎控除(self.所得金額等.所得金額等_合計)
 
@@ -454,7 +454,7 @@ class 所得税_税額控除:
         """
         impl = get_context().所得税_税率
         if impl is None:
-            raise NotImplementedError(f'Context.所得税_税率')
+            raise NotImplementedError('Context.所得税_税率')
 
         return impl.所得税の税率(self.課税される所得金額又は第三表)
 

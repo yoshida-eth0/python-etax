@@ -2,12 +2,8 @@
 給与所得
 """
 
-import sys
-
 import pandas as pd
 from context import get_context
-from meta.給与所得控除 import 給与所得控除後の金額Protocol
-from utils import intfloor, ゼロ以上
 
 """
 給与
@@ -21,10 +17,9 @@ class 給与:
     def 給与所得控除後の金額(self) -> int:
         impl = get_context().給与所得控除
         if impl is None:
-            raise NotImplementedError(f'Context.給与所得控除')
+            raise NotImplementedError('Context.給与所得控除')
 
-        func = impl.給与所得控除後の金額の式(self.給与等の収入金額)
-        return func(self.給与等の収入金額)
+        return impl.給与所得控除後の金額(self.給与等の収入金額)
 
     @property
     def 給与所得控除額(self) -> int:
