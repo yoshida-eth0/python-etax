@@ -12,32 +12,32 @@ class 社会保険:
 
     TODO: 雇用保険、労災保険
     """
-    def __init__(self, 報酬月額: int, 賞与額一覧: list[int], 納税者: 納税者):
+    def __init__(self, 報酬月額: int, 賞与額: int, 納税者: 納税者):
         self.内訳: dict[str, 社会保険Base] = {
-            '厚生年金保険': 厚生年金保険(報酬月額, 賞与額一覧),
-            '健康保険': 健康保険(報酬月額, 賞与額一覧, 納税者),
-            '介護保険': 介護保険(報酬月額, 賞与額一覧, 納税者),
+            '厚生年金保険': 厚生年金保険(報酬月額, 賞与額),
+            '健康保険': 健康保険(報酬月額, 賞与額, 納税者),
+            '介護保険': 介護保険(報酬月額, 賞与額, 納税者),
         }
 
     @property
-    def 被保険者年間負担額(self) -> int:
+    def 被保険者負担額(self) -> int:
         """
-        被保険者が1年間で負担する総額
+        被保険者が負担する総額
         """
-        return sum([保険.被保険者年間負担額 for 保険 in self.内訳.values()])
+        return sum([保険.被保険者負担額 for 保険 in self.内訳.values()])
 
     @property
-    def 事業主年間負担額(self) -> int:
+    def 事業主負担額(self) -> int:
         """
-        事業主が1年間で負担する総額
+        事業主が負担する総額
         """
-        return sum([保険.事業主年間負担額 for 保険 in self.内訳.values()])
+        return sum([保険.事業主負担額 for 保険 in self.内訳.values()])
 
     def to_dataframe(self) -> pd.DataFrame:
         """
         DataFrameに変換
         """
         return pd.DataFrame(
-            [[保険名, 保険.被保険者年間負担額, 保険.事業主年間負担額] for 保険名, 保険 in self.内訳.items()],
-            columns=['保険名', '被保険者年間負担額', '事業主年間負担額']
+            [[保険名, 保険.被保険者負担額, 保険.事業主負担額] for 保険名, 保険 in self.内訳.items()],
+            columns=['保険名', '被保険者負担額', '事業主負担額']
         )

@@ -50,13 +50,13 @@ class 種類別厚生年金保険料(種類別保険料):
 
 
 class 厚生年金保険(社会保険Base):
-    def __init__(self, 報酬月額: int, 賞与額一覧: list[int]):
+    def __init__(self, 報酬月額: int, 賞与額: int):
         """
-        厚生年金保険
+        1ヶ月分の厚生年金保険料
 
         args:
             報酬月額 (int): 一般的には4〜6月の月額の平均
-            賞与額一覧 (list[int]): 賞与額の配列、3要素以下
+            賞与額 (int): 賞与額
 
         参考：
             厚生年金保険の保険料｜日本年金機構
@@ -66,7 +66,7 @@ class 厚生年金保険(社会保険Base):
             https://www.nenkin.go.jp/service/doga/doga_kounen/santeisetsumei.html
         """
         self.報酬月額 = 報酬月額
-        self.賞与額一覧 = 賞与額一覧
+        self.賞与額 = 賞与額
 
         impl = get_context().厚生年金保険
         if impl is None:
@@ -74,4 +74,4 @@ class 厚生年金保険(社会保険Base):
 
         # 種類別の厚生年金保険料
         self.月額保険料 = 種類別厚生年金保険料(impl.標準報酬額区分(報酬月額), impl.保険料率)
-        self.賞与額保険料一覧 = [種類別厚生年金保険料(impl.標準賞与額区分(賞与額), impl.保険料率) for 賞与額 in 賞与額一覧]
+        self.賞与額保険料 = 種類別厚生年金保険料(impl.標準賞与額区分(賞与額), impl.保険料率)
