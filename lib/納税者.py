@@ -1,6 +1,6 @@
 from enum import Enum
 
-from meta.社会保険 import 都道府県名
+from meta.社会保険 import 事業の種類名, 都道府県名
 
 
 class 障害(Enum):
@@ -69,6 +69,9 @@ class 納税者:
     所得税や住民税の控除額を算出する際に用いる納税者の情報
     """
     def __init__(self):
+        # 事業の種類
+        self.事業の種類: 事業の種類名 = '一般の事業'
+
         # 社会保険料
         # 支払った金額
         self.社会保険料: int = 0
