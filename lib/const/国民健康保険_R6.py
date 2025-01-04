@@ -42,6 +42,8 @@ class 国民健康保険_R6(I国民健康保険):
     }
 
     def 国民健康保険料率区分一覧(self, 地域: int) -> list[国民健康保険料率区分]:
+        if 地域 not in self.__国民健康保険料率の定義:
+            raise NotImplementedError(f'国民健康保険_R6.国民健康保険料率区分一覧: {地域}')
         return self.__国民健康保険料率の定義[地域]
 
     def 低所得世帯軽減割合(self, 総所得金額等の合計: int) -> float:
