@@ -24,6 +24,20 @@ def ゼロ以上(func) -> int:
     return wrapper
 
 
+def in_range(key_range: range, key: int) -> bool:
+    """
+    keyがrangeの以上未満に含まれるか否かを返す
+
+    args:
+        key_range (range): 検索対象のrange
+        key (int): 検索値
+    return:
+        bool (bool): keyがrangeの以上未満に含まれるか
+    """
+    start, stop = sorted([key_range.start, key_range.stop])
+    return start<=key and key<stop
+
+
 def get_range_dict_value(dic: dict[range,T], key: int) -> T:
     """
     rangeをキーに持つ辞書からrangeに含まれるkeyの要素を返す
