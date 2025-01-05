@@ -1,5 +1,5 @@
 from contextlib import contextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from meta.介護保険 import I介護保険
 from meta.住民税 import I住民税_基礎控除, I住民税_税率一覧
@@ -39,17 +39,16 @@ class Context:
 
 # stack
 
-context_stack: list[Context] = []
+context_stack: list[Context] = [Context()]
 
-def create_context(context: Context|None = None) -> Context:
+def push_context(context: Context) -> Context:
     """
-    コンテキストを作成し切り替える
+    コンテキストを追加して切り替える
     """
-    context = context or Context()
     context_stack.append(context)
     return context
 
-def destroy_context() -> None:
+def pop_context() -> None:
     """
     コンテキストを削除して抜ける
     """
@@ -58,18 +57,39 @@ def destroy_context() -> None:
 @contextmanager
 def open_context(context: Context|None = None):
     """
-    with文の中のみcontextを切り替える
+    with文の中のみコンテキストを切り替える
+
+    args:
+        context (Context|None): with文の中のみ有効にするコンテキスト、Noneの場合は新たに作成する
     """
-    context = create_context(context)
+    context = context or Context()
+    push_context(context)
     try:
         yield context
     finally:
-        destroy_context()
+        pop_context()
+
+@contextmanager
+def open_clone_context():
+    """
+    現行のコンテキストをコピーし、with文の中のみ切り替える
+    """
+    clone_context = replace(get_context())
+    with open_context(clone_context):
+        yield clone_context
 
 def get_context() -> Context:
     """
-    コンテキストを返す
+    現行のコンテキストを返す
     """
     if len(context_stack)==0:
         raise NotImplementedError('not exists context')
     return context_stack[-1]
+
+def set_context(context: Context):
+    """
+    現行のコンテキストを書き換える
+    """
+    if len(context_stack)==0:
+        raise NotImplementedError('not exists context')
+    context_stack[-1] = context
