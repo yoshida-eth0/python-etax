@@ -3,7 +3,7 @@ import math
 import pandas as pd
 from context import get_context
 from utils import in_range
-from 所得税及び復興特別所得税の申告内容確認表 import 所得金額等
+from 所得税及び復興特別所得税の申告内容確認表_第一表 import 所得金額等
 from 納税者 import 納税者
 
 

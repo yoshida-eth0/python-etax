@@ -6,6 +6,7 @@ from meta.所得税 import 所得税の税率
 from utils import intfloor, ゼロ以上
 from 所得.事業所得 import 損益計算書
 from 所得.給与所得 import 給与所得者の特定支出に関する明細書
+from 所得.雑所得 import 収支内訳書
 from 納税者 import 納税者
 
 
@@ -32,9 +33,10 @@ class 所得金額等:
     TODO:
         事業所得以外未実装
     """
-    def __init__(self, 事業_営業等: 損益計算書|None = None, 給与: 給与所得者の特定支出に関する明細書|None = None):
+    def __init__(self, 事業_営業等: 損益計算書|None = None, 給与: 給与所得者の特定支出に関する明細書|None = None, 雑_業務: 収支内訳書|None = None):
         self.事業_営業等: 損益計算書 = 事業_営業等 or 損益計算書()
         self.給与 = 給与 or 給与所得者の特定支出に関する明細書()
+        self.雑_業務 = 雑_業務
 
     @property
     def 収入金額等_事業_営業等(self) -> int:
@@ -58,6 +60,13 @@ class 所得金額等:
         return self.給与.特定支出の金額.適用を受ける特定支出の区分の合計
 
     @property
+    def 収入金額等_雑_業務(self) -> int:
+        """
+        キ. 収入金額等 -> 雑 -> 業務
+        """
+        return self.雑_業務.差引金額
+
+    @property
     def 所得金額等_事業_営業等(self) -> int:
         """
         1. 所得金額等 -> 事業 -> 営業等
@@ -70,6 +79,22 @@ class 所得金額等:
         6. 所得金額等 -> 給与
         """
         return self.給与.特定支出控除適用後の給与所得金額
+
+    @property
+    def 所得金額等_雑_業務(self) -> int:
+        """
+        8. 所得金額等 -> 雑 -> 業務
+        """
+        return self.雑_業務.所得金額
+
+    @property
+    def _7から9までの計(self) -> int:
+        """
+        10. 7から9までの計
+        """
+        total = 0
+        total += self.雑_業務.所得金額
+        return total
 
     @property
     def 所得金額等_合計(self) -> int:
@@ -93,6 +118,7 @@ class 所得金額等:
         total = 0
         total += self.所得金額等_事業_営業等
         total += self.所得金額等_給与
+        total += self.所得金額等_雑_業務
         return total
 
     @property
@@ -113,6 +139,7 @@ class 所得金額等:
         total = 0
         total += self.所得金額等_事業_営業等
         total += self.所得金額等_給与
+        total += self.所得金額等_雑_業務
         return total
 
     @property
@@ -130,6 +157,7 @@ class 所得金額等:
         total = 0
         total += self.所得金額等_事業_営業等
         total += self.所得金額等_給与
+        total += self.所得金額等_雑_業務
         return total
 
     def to_dataframe(self) -> pd.DataFrame:
@@ -143,7 +171,7 @@ class 所得金額等:
             ['エ', '収入金額等', '配当', None, 0],
             ['オ', '収入金額等', '給与', None, self.収入金額等_給与],
             ['カ', '収入金額等', '雑', '公的年金等', 0],
-            ['キ', '収入金額等', '雑', '業務', 0],
+            ['キ', '収入金額等', '雑', '業務', self.収入金額等_雑_業務],
             ['ク', '収入金額等', '雑', 'その他', 0],
             ['ケ', '収入金額等', '総合譲渡', '短期', 0],
             ['コ', '収入金額等', '総合譲渡', '長期', 0],
@@ -155,9 +183,9 @@ class 所得金額等:
             ['5', '所得金額等', '配当', None, 0],
             ['6', '所得金額等', '給与', None, self.所得金額等_給与],
             ['7', '所得金額等', '雑', '公的年金等', 0],
-            ['8', '所得金額等', '雑', '業務', 0],
+            ['8', '所得金額等', '雑', '業務', self.所得金額等_雑_業務],
             ['9', '所得金額等', '雑', 'その他', 0],
-            ['10', '所得金額等', '雑', '7から9までの計', 0],
+            ['10', '所得金額等', '雑', '7から9までの計', self._7から9までの計],
             ['11', '所得金額等', '総合譲渡・一時', None, 0],
             ['12', '所得金額等', '合計', None, self.所得金額等_合計],
         ], columns=['key', 'label1', 'label2', 'label3', 'value'])

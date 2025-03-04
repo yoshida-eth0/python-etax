@@ -1,7 +1,7 @@
 from bisect import bisect_left
 
 from 住民税 import 住民税, 住民税の税額
-from 所得税及び復興特別所得税の申告内容確認表 import 所得税及び復興特別所得税の申告内容確認表_第一表, 所得金額等
+from 所得税及び復興特別所得税の申告内容確認表_第一表 import 所得税及び復興特別所得税の申告内容確認表_第一表, 所得金額等
 from 納税者 import 納税者
 
 
