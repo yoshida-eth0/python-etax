@@ -6,7 +6,7 @@ from context import get_context
 from meta.住民税 import 住民税の税率
 from meta.所得税 import 所得税の税率
 from utils import intfloor, ゼロ以上
-from 所得税及び復興特別所得税の申告内容確認表_第一表 import 所得税_所得控除, 所得金額等
+from 所得税及び復興特別所得税.申告内容確認表_第一表 import 所得税_所得控除, 所得金額等
 from 納税者 import 納税者
 
 

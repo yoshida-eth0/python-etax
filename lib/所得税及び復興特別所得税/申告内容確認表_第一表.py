@@ -1,3 +1,6 @@
+"""
+所得税及び復興特別所得税の申告内容確認表 第一表
+"""
 import math
 
 import pandas as pd
@@ -36,7 +39,7 @@ class 所得金額等:
     def __init__(self, 事業_営業等: 損益計算書|None = None, 給与: 給与所得者の特定支出に関する明細書|None = None, 雑_業務: 収支内訳書|None = None):
         self.事業_営業等: 損益計算書 = 事業_営業等 or 損益計算書()
         self.給与 = 給与 or 給与所得者の特定支出に関する明細書()
-        self.雑_業務 = 雑_業務
+        self.雑_業務 = 雑_業務 or 収支内訳書()
 
     @property
     def 収入金額等_事業_営業等(self) -> int:

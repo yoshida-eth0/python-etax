@@ -9,8 +9,8 @@ class 住民税_税率一覧_R7(I住民税_税率一覧):
     住民税 税率一覧(定額減税なし)
 
     参考:
-        杉並区 令和6年度 わたしたちの区税 P15
-        https://www.city.suginami.tokyo.jp/_res/projects/default_project/_page_/001/014/046/r6kuzei.pdf.pdf
+        杉並区 令和7年度 わたしたちの区税 P15
+        https://www.city.suginami.tokyo.jp/documents/7168/r7kuzei.pdf
     """
     __住民税の税率一覧 = [
         住民税の税率(区分='特別区民税', 所得割=0.06, 均等割=3_000),
