@@ -294,8 +294,15 @@ class 税率別消費税額計算表:
         """
         DataFrameに変換
         """
-        df = pd.DataFrame(columns=['key', 'label1', 'label2'])
+        df = self.合計.to_dataframe().set_index('key')
+
         for x税率適用分 in self.税率適用分一覧:
-            df = pd.merge(df, x税率適用分.to_dataframe(), on=['key', 'label1', 'label2'], how='outer')
-        df = pd.merge(df, self.合計.to_dataframe(), on=['key', 'label1', 'label2'], how='outer')
-        return df
+            df2 = x税率適用分.to_dataframe().set_index('key')
+            df[x税率適用分.label] = df2[x税率適用分.label]
+
+        # columns
+        columns = ['key', 'label1', 'label2']
+        columns += [x税率適用分.label for x税率適用分 in self.税率適用分一覧]
+        columns += ['合計']
+
+        return df.reset_index()[columns]

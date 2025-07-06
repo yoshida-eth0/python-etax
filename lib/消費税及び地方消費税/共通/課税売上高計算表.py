@@ -241,11 +241,14 @@ class 課税売上高計算表:
         DataFrameに変換
         """
         # 列：金額
-        df = self.金額.to_dataframe(self.任意の所得名)
+        df = self.金額.to_dataframe(self.任意の所得名).set_index('key')
 
         # 列：税率適用分
         for x税率適用分 in self.税率適用分一覧:
-            df = pd.merge(df, x税率適用分.to_dataframe(self.任意の所得名), on=['key', 'label1', 'label2'], how='outer')
+            df2 = x税率適用分.to_dataframe(self.任意の所得名).set_index('key')
+            df[x税率適用分.label] = df2[x税率適用分.label]
+
+        df = df.reset_index()
 
         # 行：(6) 課税資産の譲渡等の対価の額の計算
         total_df = self.to_total_dataframe()
