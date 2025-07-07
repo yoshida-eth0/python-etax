@@ -122,14 +122,14 @@ class 本年分の損益通算前の分離課税配当所得等金額:
         """
         rows = [v.to_series() for v in self.明細一覧]
         dfs = [series.to_frame().T for series in rows]
-        df = pd.concat(dfs)
+        df = pd.concat(dfs, ignore_index=True)
 
         total_df = pd.DataFrame([
             ['合計', self.合計_利子等配当等の収入金額, self.合計_配当所得に係る負債の利子],
             ['本年分の損益通算前の分離課税配当所得等金額', self.本年分の損益通算前の分離課税配当所得等金額, 0],
         ], columns=['種目・所得の生ずる場所', '利子等・配当等の収入金額(税込)', '配当所得に係る負債の利子'])
 
-        return pd.concat([df, total_df])
+        return pd.concat([df, total_df], ignore_index=True)
 
 
 class 本年分の損益通算後の上場株式等に係る譲渡損失の金額又は分離課税配当所得等金額:
@@ -323,7 +323,7 @@ class 翌年以降に繰り越される上場株式等に係る譲渡損失の�
         """
         rows = [v.to_series() for v in self.年分一覧]
         dfs = [series.to_frame().T for series in rows]
-        return pd.concat(dfs)
+        return pd.concat(dfs, ignore_index=True)
 
     def to_dataframe(self) -> pd.DataFrame:
         """
@@ -408,4 +408,4 @@ class 上場株式等に係る譲渡損失の損益通算及び繰越控除:
             self.翌年以降に繰り越される上場株式等に係る譲渡損失の金額の計算.to_dataframe(),
             self.前年から繰り越された上場株式等に係る譲渡損失の金額を控除した後の本年分の分離課税配当所得等金額の計算.to_dataframe(),
         ]
-        return pd.concat(dfs)[['key', 'label1', 'label2', 'value']]
+        return pd.concat(dfs, ignore_index=True)[['key', 'label1', 'label2', 'value']]

@@ -105,7 +105,7 @@ class 申告する特定口座の上場株式等に係る譲渡所得等の金�
         """
         rows = [v.to_series() for v in self.明細一覧] + [self.to_total_series()]
         dfs = [series.to_frame().T for series in rows]
-        return pd.concat(dfs)
+        return pd.concat(dfs, ignore_index=True)
 
 
 """
