@@ -492,6 +492,13 @@ class 所得税_税額控除:
         # 42. 災害減免額
         self.災害減免額: int = 0
 
+        # 48. 源泉徴収税額
+        self.源泉徴収税額: int = 0
+
+        # R6 44. 定額減税額
+        # R6のみ30_000を指定する
+        self.定額減税額 = 0
+
         # 課税される所得金額又は第三表 delegate
         self.delegate: 第三表_計算結果 | None = None
 
@@ -564,26 +571,41 @@ class 所得税_税額控除:
         return self.差引所得税額 - self.災害減免額
 
     @property
+    def 令和6年分特別税額控除(self) -> int:
+        """
+        R6 44. 令和6年分特別税額控除（3万円×人数）
+        """
+        return self.定額減税額 * (1 + self.納税者.控除対象配偶者又は扶養親族の人数)
+
+    @property
+    @ゼロ以上
+    def 再々差引所得税額(self) -> int:
+        """
+        R6 45. 再々差引所得税額(基準所得税額)
+        """
+        return self.再差引所得税額 - self.令和6年分特別税額控除
+
+    @property
     def 復興特別所得税(self) -> int:
         """
         44. 復興特別所得税
         """
         zeiritsu = self.所得税の税率
-        return math.floor(self.再差引所得税額 * zeiritsu.復興特別所得税率)
+        return math.floor(self.再々差引所得税額 * zeiritsu.復興特別所得税率)
 
     @property
     def 所得税及び復興特別所得税(self) -> int:
         """
         45. 所得税及び復興特別所得税
         """
-        return self.再差引所得税額 + self.復興特別所得税
+        return self.再々差引所得税額 + self.復興特別所得税
 
     @property
     def 申告納税額(self) -> int:
         """
         49. 申告納税額
         """
-        return intfloor(self.所得税及び復興特別所得税, 2)
+        return intfloor(self.所得税及び復興特別所得税 - self.源泉徴収税額, 2)
 
     @property
     def 予定納税額(self) -> int:
@@ -618,11 +640,13 @@ class 所得税_税額控除:
             ['41', '差引所得税額', None, self.差引所得税額],
             ['42', '災害減免額', None, self.災害減免額],
             ['43', '再差引所得税額(基準所得税額)', None, self.再差引所得税額],
+            ['R6 44', '令和6年分特別税額控除', None, self.令和6年分特別税額控除],
+            ['R5 45', '再々差引所得税額', None, self.再々差引所得税額],
             ['44', '復興特別所得税', None, self.復興特別所得税],
             ['45', '所得税及び復興特別所得税', None, self.所得税及び復興特別所得税],
             ['46', '外国税額控除', None, 0],
             ['47', '外国税額控除', None, 0],
-            ['48', '源泉徴収税額', None, 0],
+            ['48', '源泉徴収税額', None, self.源泉徴収税額],
             ['49', '申告納税額', None, self.申告納税額],
             ['50', '予定納税額(第1期分・第2期分)', None, self.予定納税額],
             ['51', '第3期分の税額', '収める税金', max(0, self.第3期分の税額)],
