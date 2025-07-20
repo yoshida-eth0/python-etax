@@ -1,6 +1,7 @@
 """
 所得税及び復興特別所得税の申告内容確認表 第一表
 """
+from abc import abstractmethod
 import math
 
 import pandas as pd
@@ -450,6 +451,29 @@ class 所得税_所得控除:
         ], columns=['key', 'label', 'value'])
 
 
+class 第三表_計算結果:
+    """
+    「所得税及び復興特別所得税の申告内容確認表 第三表」の計算結果を「所得税及び復興特別所得税の申告内容確認表 第一表」に渡すdelegate
+    """
+    @property
+    @abstractmethod
+    def 課税される所得金額合計(self) -> int:
+        """
+        第三表 -> 税金の計算 -> 課税される所得金額 の合計
+        第一表 30. 課税される所得金額又は第三表 に転記
+        """
+        ...
+
+    @property
+    @abstractmethod
+    def 課税される所得金額に対する税額合計(self) -> int:
+        """
+        第三表 -> 税金の計算 -> 税額 の合計
+        第一表 31. 上の30に対する税額又は第三表の95 に転記
+        """
+        ...
+
+
 class 所得税_税額控除:
     """
     所得税の税額控除
@@ -459,8 +483,6 @@ class 所得税_税額控除:
 
     No.1200 税額控除｜国税庁
     https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/1200.htm
-
-    TODO
     """
     def __init__(self, 所得税_所得控除: 所得税_所得控除, 納税者: 納税者):
         self.所得金額等 = 所得税_所得控除.所得金額等
@@ -470,13 +492,29 @@ class 所得税_税額控除:
         # 42. 災害減免額
         self.災害減免額: int = 0
 
+        # 課税される所得金額又は第三表 delegate
+        self.delegate: 第三表_計算結果 | None = None
+
+    @property
+    @ゼロ以上
+    def 課税される所得金額(self) -> int:
+        """
+        30. 課税される所得金額又は第三表
+        総合課税のみの課税される所得金額
+        """
+        return intfloor(self.所得金額等.所得金額等_合計 - self.所得税_所得控除.所得控除合計, 3)
+
     @property
     @ゼロ以上
     def 課税される所得金額又は第三表(self) -> int:
         """
         30. 課税される所得金額又は第三表
+        総合課税と分離課税をあわせた所得金額
         """
-        return intfloor(self.所得金額等.所得金額等_合計 - self.所得税_所得控除.所得控除合計, 3)
+        if self.delegate:
+            return self.delegate.課税される所得金額合計
+        else:
+            return self.課税される所得金額
 
     @property
     def 所得税の税率(self) -> 所得税の税率:
@@ -487,15 +525,27 @@ class 所得税_税額控除:
         if impl is None:
             raise NotImplementedError('Context.所得税_税率')
 
-        return impl.所得税の税率(self.課税される所得金額又は第三表)
+        return impl.所得税の税率(self.課税される所得金額)
+
+    @property
+    def 課税される所得金額に対する税額(self) -> int:
+        """
+        31. 上の30に対する税額又は第三表の93
+        総合課税のみの税額
+        """
+        zeiritsu = self.所得税の税率
+        return math.floor(self.課税される所得金額 * zeiritsu.税率 - zeiritsu.控除額)
 
     @property
     def 上の30に対する税額又は第三表の93(self) -> int:
         """
         31. 上の30に対する税額又は第三表の93
+        総合課税と分離課税をあわせた税額
         """
-        zeiritsu = self.所得税の税率
-        return math.floor(self.課税される所得金額又は第三表 * zeiritsu.税率 - zeiritsu.控除額)
+        if self.delegate:
+            return self.delegate.課税される所得金額に対する税額合計
+        else:
+            return self.課税される所得金額に対する税額
 
     @property
     def 差引所得税額(self) -> int:
